@@ -2,19 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>M.M car game demo</title>
     <link rel="icon" type="image/png" href="game_icon.png">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        body {
+        /* Reset margins to prevent the page from being wider than the screen */
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             background: #000;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
         }
+
         #startScreen {
             position: absolute;
             width: 100%;
@@ -29,6 +39,7 @@
             z-index: 1000;
             text-align: center;
         }
+
         #startButton {
             background: #f0f;
             color: #fff;
@@ -42,10 +53,17 @@
             box-shadow: 0 0 15px #f0f;
             transition: transform 0.2s;
         }
+
         #startButton:hover {
             transform: scale(1.1);
         }
+
+        /* --- THE ZOOM FIX --- */
         canvas {
+            display: block;
+            max-width: 100vw;   /* Force width to fit window */
+            max-height: 100vh;  /* Force height to fit window */
+            object-fit: contain; /* Keeps the game's shape correct */
             box-shadow: 0 0 20px rgba(0,250,0,0.2);
         }
     </style>
@@ -71,20 +89,16 @@
         if (gameInitialized) return;
         gameInitialized = true;
 
-        // Hide start screen
         document.getElementById('startScreen').style.display = 'none';
 
-        // 1. Initialize Audio
         const bgMusic = new Audio('bit_shift.mp3');
         bgMusic.loop = true;
         bgMusic.volume = 0.3;
 
-        // Play the music - This works because it's inside a click event
         bgMusic.play()
             .then(() => console.log("Music Playing!"))
             .catch(err => console.error("Audio failed:", err));
 
-        // 2. Load the game script (index.js)
         const script = document.createElement('script');
         script.src = 'index.js';
         document.body.appendChild(script);
