@@ -129,7 +129,13 @@ class MainScene extends Phaser.Scene {
         }).setOrigin(0.5).setVisible(false);
 
         this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-        this.input.on('pointerdown', () => this.handleAction());
+
+        // UPDATED: Only pause/unpause on click if game is already stopped/dead
+        this.input.on('pointerdown', (pointer) => {
+            if (this.isPaused || this.isDead) {
+                this.handleAction();
+            }
+        });
     }
 
     handleAction() {
@@ -169,8 +175,24 @@ class MainScene extends Phaser.Scene {
         if (!this.isPaused && !this.isDead) {
             this.score += 1;
 
-            if (this.cursors.left.isDown) this.playerX -= 0.02;
-            if (this.cursors.right.isDown) this.playerX += 0.02;
+            // KEYBOARD STEERING
+            if (this.cursors.left.isDown) {
+                this.playerX -= 0.02;
+            } else if (this.cursors.right.isDown) {
+                this.playerX += 0.02;
+            }
+
+            // UPDATED: MOBILE TOUCH STEERING (Left half vs Right half)
+            if (this.input.activePointer.isDown) {
+                // We use scale.gameSize to get the actual visible pixel coordinate
+                const touchX = this.input.activePointer.x;
+                if (touchX < WIDTH / 2) {
+                    this.playerX -= 0.02;
+                } else {
+                    this.playerX += 0.02;
+                }
+            }
+
             this.playerX = Phaser.Math.Clamp(this.playerX, -2.8, 2.8);
             this.playerZ = (this.playerZ + this.speed) % this.circuit.totalLength;
 
@@ -184,7 +206,9 @@ class MainScene extends Phaser.Scene {
 
         const baseSegment = this.circuit.getSegment(this.camera.z);
         const maxVisibleSegments = 200;
-        const playerCarZ = this.playerZ + 700;
+
+        // UPDATED: Adjusted hit detection Z to match your new car position at the bottom
+        const playerCarZ = this.playerZ + 500;
 
         for (let n = maxVisibleSegments; n > 0; n--) {
             const index = (baseSegment.index + n) % this.circuit.segments.length;
@@ -392,7 +416,6 @@ class MainScene extends Phaser.Scene {
     }
 
     drawPlayer() {
-        // CHANGED: cy from HEIGHT - 60 to HEIGHT - 10 to move car to the bottom
         const cx = WIDTH / 2;
         const cy = HEIGHT - 7;
         const w = 400;
@@ -402,24 +425,19 @@ class MainScene extends Phaser.Scene {
         const detailColor = this.isDead ? 0x555555 : 0xff0000;
         const lightColor = this.isDead ? 0x222222 : 0xff00ff;
 
-        // Draw Wheels
         this.playerGraphics.fillStyle(0x222222, 1);
         this.playerGraphics.fillRect(cx - (w * 0.45), cy - 40, 80, 60);
         this.playerGraphics.fillRect(cx + (w * 0.45) - 80, cy - 40, 80, 60);
 
-        // Draw Car Body Lower
         this.playerGraphics.fillStyle(bodyColor, 1);
         this.drawPolygonCar(cx - w * 0.5, cy, cx + w * 0.5, cy, cx + w * 0.48, cy - h * 0.4, cx - w * 0.48, cy - h * 0.4);
 
-        // Draw Car Body Mid
         this.playerGraphics.fillStyle(detailColor, 1);
         this.drawPolygonCar(cx - w * 0.48, cy - h * 0.4, cx + w * 0.48, cy - h * 0.4, cx + w * 0.42, cy - h * 0.65, cx - w * 0.42, cy - h * 0.65);
 
-        // Draw Windshield/Roof
         this.playerGraphics.fillStyle(0x111111, 1);
         this.drawPolygonCar(cx - w * 0.38, cy - h * 0.65, cx + w * 0.38, cy - h * 0.65, cx + w * 0.28, cy - h * 1.1, cx - w * 0.28, cy - h * 1.1);
 
-        // Draw Tail Lights / Neon
         this.playerGraphics.fillStyle(lightColor, 1);
         for(let i=0; i<4; i++) {
             this.playerGraphics.fillRect(cx - (w * 0.84)/2, cy - h * 0.55 + (i * 8), w * 0.84, 4);
@@ -479,7 +497,6 @@ class MainScene extends Phaser.Scene {
     }
 }
 
-// THE UPDATED PHASER CONFIG
 new Phaser.Game({
     type: Phaser.AUTO,
     parent: 'gameContainer',
