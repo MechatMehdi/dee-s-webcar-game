@@ -1,5 +1,3 @@
-
-
 const WIDTH = 1920;
 const HEIGHT = 1080;
 const HORIZON = HEIGHT * 0.65;
@@ -74,9 +72,7 @@ class MainScene extends Phaser.Scene {
         this.score = 0;
     }
 
-    preload() {
-        // No audio preloading here to avoid doubling
-    }
+    preload() {}
 
     create() {
         this.circuit = new Circuit();
@@ -122,8 +118,6 @@ class MainScene extends Phaser.Scene {
         this.uiGraphics = this.add.graphics();
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        // UI Text Elements
-        // CHANGED: Y from 50 to 130 to put it inside the box
         this.scoreText = this.add.text(WIDTH - 50, 130, '000000', {
             font: 'bold 60px monospace',
             fill: '#0ff'
@@ -209,7 +203,6 @@ class MainScene extends Phaser.Scene {
             this.aiCars.forEach(car => {
                 if (car.z >= seg.point.world.z && car.z < seg.point.world.z + this.circuit.segmentLength) {
                     this.drawAICar(seg, car);
-
                     if (!this.isDead && !this.isPaused) {
                         const zDiff = Math.abs(car.z - playerCarZ);
                         const xDiff = Math.abs(this.playerX - car.x);
@@ -434,10 +427,8 @@ class MainScene extends Phaser.Scene {
     }
 
     drawUI() {
-        // Update top-right score text
         this.scoreText.setText(Math.floor(this.score).toString().padStart(6, '0'));
 
-        // CHANGED: Box Y from 110 to 115 to match the text perfectly
         this.uiGraphics.fillStyle(0x000000, 0.5);
         this.uiGraphics.fillRect(WIDTH - 380, 115, 350, 100);
         this.uiGraphics.lineStyle(2, 0x00ffff, 0.8);
@@ -446,17 +437,14 @@ class MainScene extends Phaser.Scene {
         if (this.isPaused) {
             this.uiGraphics.fillStyle(0x000000, 0.7);
             this.uiGraphics.fillRect(0, 0, WIDTH, HEIGHT);
-
-            // Main UI Box
             this.uiGraphics.lineStyle(6, 0x00ffff, 1);
             this.uiGraphics.strokeRoundedRect(WIDTH/2 - 250, HEIGHT/2 - 120, 500, 300, 40);
 
             const pulse = Math.sin(this.time.now / 200) * 0.2 + 0.8;
             const triSize = 40;
             const centerX = WIDTH / 2;
-            const centerY = HEIGHT / 2 - 20; // Moved triangle up slightly
+            const centerY = HEIGHT / 2 - 20;
 
-            // Play Triangle
             this.uiGraphics.fillStyle(0xff00ff, pulse);
             this.uiGraphics.beginPath();
             this.uiGraphics.moveTo(centerX - triSize, centerY - triSize);
@@ -471,7 +459,6 @@ class MainScene extends Phaser.Scene {
             this.pauseScoreText.setVisible(true);
             if (this.isDead) {
                 this.pauseScoreText.setText("CRASHED! SCORE: " + Math.floor(this.score)).setColor('#ff0000');
-                // Red "Failure" bar
                 this.uiGraphics.fillStyle(0xff0000, 1);
                 this.uiGraphics.fillRect(centerX - 150, centerY + 160, 300, 5);
             } else {
@@ -483,4 +470,16 @@ class MainScene extends Phaser.Scene {
     }
 }
 
-new Phaser.Game({ type: Phaser.AUTO, width: WIDTH, height: HEIGHT, scene: [MainScene], backgroundColor: '#000000' });
+// THE UPDATED PHASER CONFIG
+new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: 'gameContainer',
+    width: WIDTH,
+    height: HEIGHT,
+    backgroundColor: '#000000',
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    scene: [MainScene]
+});
