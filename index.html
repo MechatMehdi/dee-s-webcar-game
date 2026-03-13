@@ -3,59 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>M.M car game demo</title>
+    <title>MEHDI'S NEON DRIVE</title>
     <link rel="icon" type="image/png" href="game_icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
+        :root {
+            --cyan:    #00ffff;
+            --magenta: #ff00ff;
+            --yellow:  #ffff00;
+            --dark:    #000011;
+            --glow-c:  0 0 8px #00ffff, 0 0 20px #00ffff44;
+            --glow-m:  0 0 8px #ff00ff, 0 0 20px #ff00ff44;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            margin: 0;
             background: #000;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            /* Prevent scrolling/bouncing on mobile */
             touch-action: none;
+            font-family: 'Orbitron', monospace;
         }
+
+        /* ── SCANLINE overlay ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                    to bottom,
+                    transparent 0px,
+                    transparent 3px,
+                    rgba(0,0,0,0.08) 3px,
+                    rgba(0,0,0,0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ── START SCREEN ── */
         #startScreen {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 60%, #1a003a 0%, #000011 70%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #0ff;
-            font-family: 'Courier New', monospace;
+            color: var(--cyan);
             z-index: 1000;
             text-align: center;
+            overflow: hidden;
         }
-        #startButton {
-            background: #f0f;
-            color: #fff;
-            border: none;
-            padding: 20px 40px;
-            font-size: 24px;
+
+        /* Animated grid floor */
+        #startScreen::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 55%;
+            background:
+                    linear-gradient(to bottom, transparent 0%, #08001a 100%),
+                    repeating-linear-gradient(90deg, rgba(255,0,255,0.18) 0px, rgba(255,0,255,0.18) 1px, transparent 1px, transparent 60px),
+                    repeating-linear-gradient(0deg,  rgba(255,0,255,0.18) 0px, rgba(255,0,255,0.18) 1px, transparent 1px, transparent 60px);
+            transform: perspective(400px) rotateX(55deg);
+            transform-origin: bottom center;
+            pointer-events: none;
+        }
+
+        /* Stars bg */
+        #startScreen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                    radial-gradient(1px 1px at 15% 12%, #fff 0, transparent 0),
+                    radial-gradient(1px 1px at 28% 30%, #fff 0, transparent 0),
+                    radial-gradient(1.5px 1.5px at 62% 8%,  #fff 0, transparent 0),
+                    radial-gradient(1px 1px at 79% 22%, #fff 0, transparent 0),
+                    radial-gradient(1px 1px at 44% 40%, #fff 0, transparent 0),
+                    radial-gradient(1.5px 1.5px at 91% 18%, #fff 0, transparent 0),
+                    radial-gradient(1px 1px at 7%  35%, #fff 0, transparent 0),
+                    radial-gradient(1px 1px at 55% 25%, #fff 0, transparent 0);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .start-inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .game-title {
+            font-size: clamp(36px, 7vw, 88px);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            color: var(--cyan);
+            text-shadow: 0 0 12px var(--cyan), 0 0 40px #00ffff66, 0 0 80px #00ffff22;
+            animation: titlePulse 2.8s ease-in-out infinite;
+            line-height: 1;
+        }
+        .title-sub {
+            font-size: clamp(13px, 2.5vw, 22px);
+            color: var(--magenta);
+            letter-spacing: 0.35em;
+            text-shadow: var(--glow-m);
+            text-transform: uppercase;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 12px var(--cyan), 0 0 40px #00ffff66; }
+            50%       { text-shadow: 0 0 22px var(--cyan), 0 0 70px #00ffff99, 0 0 140px #00ffff33; }
+        }
+
+        /* Retro sun on start screen */
+        .sun-wrap {
+            position: relative;
+            width: clamp(120px, 18vw, 200px);
+            height: clamp(60px, 9vw, 100px);
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .sun {
+            width: 100%;
+            height: 200%;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #ffff00 0%, #ff8800 40%, #ff3300 60%, #ff0088 100%);
+            position: relative;
+        }
+        .sun::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 55%;
+            background: repeating-linear-gradient(
+                    to bottom,
+                    transparent 0px, transparent 8px,
+                    #1a0033 8px, #1a0033 11px
+            );
+        }
+
+        .controls-box {
+            background: rgba(0, 255, 255, 0.04);
+            border: 1px solid rgba(0,255,255,0.25);
+            border-radius: 12px;
+            padding: 18px 32px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: clamp(11px, 1.6vw, 16px);
+            color: #aaffff;
+            line-height: 1.9;
+            text-align: left;
+            max-width: 420px;
+        }
+        .controls-box span {
+            color: var(--yellow);
             font-weight: bold;
+        }
+
+        #startButton {
+            background: transparent;
+            color: var(--magenta);
+            border: 2px solid var(--magenta);
+            padding: clamp(12px, 2vh, 20px) clamp(30px, 5vw, 60px);
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(16px, 2.5vw, 26px);
+            font-weight: 700;
+            letter-spacing: 0.15em;
             cursor: pointer;
-            margin: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 15px #f0f;
-            transition: transform 0.2s;
+            border-radius: 6px;
+            box-shadow: 0 0 12px #ff00ff66, inset 0 0 12px #ff00ff11;
+            text-shadow: var(--glow-m);
+            transition: all 0.2s;
+            animation: btnPulse 1.8s ease-in-out infinite;
+            margin-top: 6px;
         }
-        #startButton:hover {
-            transform: scale(1.1);
+        #startButton:hover, #startButton:focus {
+            background: rgba(255,0,255,0.12);
+            box-shadow: 0 0 28px #ff00ffaa, inset 0 0 20px #ff00ff22;
+            transform: scale(1.06);
+            outline: none;
         }
-        /* Ensures the game canvas stays centered and scales */
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 0 12px #ff00ff66, inset 0 0 12px #ff00ff11; }
+            50%       { box-shadow: 0 0 28px #ff00ffaa, inset 0 0 20px #ff00ff22; }
+        }
+
+        .byline {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: clamp(9px, 1.2vw, 13px);
+            color: #553366;
+            letter-spacing: 0.2em;
+            margin-top: 4px;
+        }
+
+        /* Mobile hint */
+        .mobile-hint {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            color: #446655;
+            letter-spacing: 0.1em;
+        }
+
         canvas {
             display: block;
             margin: 0 auto;
-            box-shadow: 0 0 20px rgba(0,250,0,0.2);
             max-width: 100vw;
             max-height: 100vh;
         }
@@ -64,12 +225,24 @@
 <body>
 
 <div id="startScreen">
-    <h1>🚗 Mehdi's car game 🚗</h1>
-    <p>READY TO BURN PIXELS?</p>
-    <p>you steer left and right with ← and →</p>
-    <p>you pause the game with clicking or pressing enter</p>
-    <p>GAME MADE BY MECHAT MEHDI 2026</p>
-    <button id="startButton">▶ START RACE</button>
+    <div class="start-inner">
+        <div class="title-sub">▸ MECHAT MEHDI PRESENTS ◂</div>
+        <div class="game-title">NEON<br>DRIVE</div>
+
+        <div class="sun-wrap"><div class="sun"></div></div>
+
+        <div class="controls-box">
+            <span>←  →</span> &nbsp; Steer left / right<br>
+            <span>↓  S </span> &nbsp; Brake<br>
+            <span>ENTER / SPACE</span> &nbsp; Pause<br>
+            <span>📱 MOBILE</span> &nbsp; Tap left / right side<br>
+            <span>⚡ COMBO</span> &nbsp; Overtake cars for bonus!
+        </div>
+
+        <button id="startButton" autofocus>▶ &nbsp; START RACE</button>
+        <div class="byline">MADE BY MECHAT MEHDI — 2026</div>
+        <div class="mobile-hint">best on desktop · also works on mobile</div>
+    </div>
 </div>
 
 <div id="gameContainer"></div>
@@ -84,21 +257,22 @@
 
         document.getElementById('startScreen').style.display = 'none';
 
-        // Initialize Audio
+        // Background music (if file exists)
         const bgMusic = new Audio('bit_shift.mp3');
-        bgMusic.loop = true;
-        bgMusic.volume = 0.3;
+        bgMusic.loop   = true;
+        bgMusic.volume = 0.28;
+        bgMusic.play().catch(() => {});
 
-        bgMusic.play()
-            .then(() => console.log("Music Playing!"))
-            .catch(err => console.warn("Audio waiting for interaction:", err));
-
-        // Load game script
-        const script = document.createElement('script');
-        script.src = 'index.js';
+        const script  = document.createElement('script');
+        script.src    = 'index.js';
         document.body.appendChild(script);
+    });
 
-        console.log("Game script injected.");
+    // Allow keyboard start
+    document.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !gameInitialized) {
+            startButton.click();
+        }
     });
 </script>
 </body>
